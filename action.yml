@@ -7,8 +7,8 @@ branding:
   icon: "delete"
 
 inputs:
-  tag_name:
-    description: tag name
+  branch_name:
+    description: branch name
     required: true
   delete_release:
     description: whether to delete release or not
@@ -19,5 +19,27 @@ inputs:
     required: false
 
 runs:
-  using: "node12"
-  main: "index.js"
+  using: "composite"
+  steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: cleanup
+      shell: bash
+      run: |
+        branch_name=${{ inputs.branch_name }}
+        branch_name_override=${{ inputs.branch_name_override }}
+        git_branch=${branch_name_override:-$branch_name}
+        tag_format=${git_branch//[^a-zA-Z0-9]/-}
+        echo "branch_name=[${branch_name}]"
+        echo "branch_name_override=[${branch_name_override}]"
+        echo "tag_format=[$tag_format}]"
+        git fetch --all --tags
+        #search patten vX.X.X-branchName-x
+        declare -a tags=( $( git tag --list "v[0-9]*.[0-9]*.[0-9]*-${tag_format}.[0-9]*") )
+        for tag_name in "${tags[@]}"
+        do
+          node ${{ github.action_path }}/index.js ${tag_name}
+          echo "node ${{ github.action_path }}/index.js ${tag_name}"
+          echo "git push --delete origin ${tag_name}"
+          git push --delete origin ${tag_name}
+        done
