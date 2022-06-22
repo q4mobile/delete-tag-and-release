@@ -7,8 +7,8 @@ branding:
   icon: "delete"
 
 inputs:
-  tag_name:
-    description: tag name
+  branch_name:
+    description: branch name
     required: true
   delete_release:
     description: whether to delete release or not
