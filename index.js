@@ -4,12 +4,12 @@ const arguments = process.argv.slice(2);
 console.log(arguments)
 tagName = arguments[0]
 
-if (!process.env.GITHUB_TOKEN) {
-  console.error("🔴 no GITHUB_TOKEN found. pass `GITHUB_TOKEN` as env");
+if (!process.env.GH_TOKEN) {
+  console.error("🔴 no GH_TOKEN found. pass `GH_TOKEN` as env");
   process.exitCode = 1;
   return;
 }
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GH_TOKEN = process.env.GH_TOKEN;
 
 let owner, repo;
 
@@ -26,7 +26,7 @@ const commonOpts = {
   host: "api.github.com",
   port: 443,
   protocol: "https:",
-  auth: `user:${GITHUB_TOKEN}`,
+  auth: `user:${GH_TOKEN}`,
   headers: {
     "Content-Type": "application/json",
     "User-Agent": "node.js",
