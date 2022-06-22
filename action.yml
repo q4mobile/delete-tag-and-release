@@ -19,13 +19,11 @@ inputs:
     required: false
 
 runs:
-using: "composite"
+  using: "composite"
   steps:
     - name: checkout
       uses: actions/checkout@v2
-
     - name: cleanup
       shell: bash
       run: |
         sh ./deleteTagsByBranchName.sh
-
