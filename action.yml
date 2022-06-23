@@ -26,7 +26,7 @@ runs:
     - name: cleanup
       shell: bash
       run: |
-        git_branch=${$GITHUB_REF_NAME}
+        git_branch=${GITHUB_REF_NAME}
         tag_format=${git_branch//[^a-zA-Z0-9]/-}
         echo $tag_format
         git fetch --all --tags
