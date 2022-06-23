@@ -26,15 +26,20 @@ runs:
     - name: cleanup
       shell: bash
       run: |
-        git_branch=${{ inputs.branch_name }}
+        branch_name=${{ inputs.branch_name }}
+        branch_name_override=${{ inputs.branch_name_override }}
+        git_branch=${branch_name_override:-$branch_name}
         tag_format=${git_branch//[^a-zA-Z0-9]/-}
-        echo $tag_format
+        echo "branch_name=[${branch_name}]"
+        echo "branch_name_override=[${branch_name_override}]"
+        echo "tag_format=[$tag_format}]"
         git fetch --all --tags
         #search patten vX.X.X-branchName-x
         declare -a tags=( $( git tag --list "v[0-9].[0-9].[0-9]-${tag_format}.[0-9]*") )
         for tag_name in "${tags[@]}"
         do
           node ${{ github.action_path }}/index.js ${tag_name}
+          echo "node ${{ github.action_path }}/index.js ${tag_name}"
           echo "git push --delete origin ${tag_name}"
           git push --delete origin ${tag_name}
         done
