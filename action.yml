@@ -35,7 +35,7 @@ runs:
         echo "tag_format=[$tag_format}]"
         git fetch --all --tags
         #search patten vX.X.X-branchName-x
-        declare -a tags=( $( git tag --list "v[0-9].[0-9].[0-9]-${tag_format}.[0-9]*") )
+        declare -a tags=( $( git tag --list "v[0-9]*.[0-9]*.[0-9]*-${tag_format}.[0-9]*") )
         for tag_name in "${tags[@]}"
         do
           node ${{ github.action_path }}/index.js ${tag_name}
