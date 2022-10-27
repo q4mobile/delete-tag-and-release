@@ -26,8 +26,8 @@ runs:
     - name: cleanup
       shell: bash
       run: |
-        branch_name=${{ inputs.branch_name }}
-        branch_name_override=${{ inputs.branch_name_override }}
+        branch_name='${{ inputs.branch_name }}'
+        branch_name_override='${{ inputs.branch_name_override }}'
         git_branch=${branch_name_override:-$branch_name}
         tag_format=${git_branch//[^a-zA-Z0-9]/-}
         echo "branch_name=[${branch_name}]"
