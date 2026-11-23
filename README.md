@@ -31,6 +31,9 @@ By default the prerelease id is computed the same way Q4 repos configure semanti
 | `gitStream`            | `git-stream`            |
 | `fix--x`               | `fix-x`                 |
 
+Branches that semantic-release maps to the same id (`fix--x`, `fix/x_`, `Fix-X` → `fix-x`)
+already share one set of tags, so deleting any of them deletes that shared set.
+
 If a repo names its prereleases differently, pass the id with `prerelease_id`.
 
 **Breaking in v3:** v2 searched for the branch name with its case kept and no word splitting
