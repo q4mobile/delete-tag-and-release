@@ -4,7 +4,7 @@ Deletes a branch's semantic-release prerelease tags (`vX.Y.Z-<prerelease id>.N`)
 GitHub releases, typically when the branch is deleted.
 
 ```yaml
-- uses: q4mobile/delete-tag-and-release@v2.1.0
+- uses: q4mobile/delete-tag-and-release@v3.0.0
   with:
     branch_name: ${{ github.event.ref }}
     # branch_name_override: other-branch   # optional: use this branch name instead
@@ -32,6 +32,11 @@ By default the prerelease id is computed the same way Q4 repos configure semanti
 | `fix--x`               | `fix-x`                 |
 
 If a repo names its prereleases differently, pass the id with `prerelease_id`.
+
+**Breaking in v3:** v2 searched for the branch name with its case kept and no word splitting
+(`HRZ-2573-poc-rspack1`). Repos whose prerelease rule produces that format (for example
+`name.toLowerCase().replace(/[^a-z0-9]/g, '-')`) must pass `prerelease_id` or align their rule
+before moving to v3.
 `prerelease_id` may only contain `[0-9A-Za-z.-]`.
 
 The computation lives in `prerelease-id.js`, which carries lodash's `lowerCase` (MIT) so the

@@ -127,3 +127,9 @@ test('rejects a prerelease_id with characters a tag cannot hold', () => {
   assert.notEqual(r.status, 0);
   assert.deepEqual(r.deletedTags, []);
 });
+
+test('rejects a multi-line prerelease_id even when one line is valid', () => {
+  const r = run({ branch: 'x', prereleaseId: 'a\n[0-9]', tags: [...others, 'v1.2.3-a.1'] });
+  assert.notEqual(r.status, 0);
+  assert.deepEqual(r.deletedTags, []);
+});

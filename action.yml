@@ -42,7 +42,7 @@ runs:
         git_branch=${BRANCH_NAME_OVERRIDE:-$BRANCH_NAME}
         git_branch=${git_branch#refs/heads/}
         if [ -n "$PRERELEASE_ID" ]; then
-          if ! grep -Eq '^[0-9A-Za-z.-]+$' <<<"$PRERELEASE_ID"; then
+          if [[ ! "$PRERELEASE_ID" =~ ^[0-9A-Za-z.-]+$ ]]; then
             echo "🌶  prerelease_id [${PRERELEASE_ID}] may only contain [0-9A-Za-z.-]"
             exit 1
           fi
