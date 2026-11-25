@@ -35,12 +35,19 @@ Branches that semantic-release maps to the same id (`fix--x`, `fix/x_`, `Fix-X` 
 already share one set of tags, so deleting any of them deletes that shared set.
 
 If a repo names its prereleases differently, pass the id with `prerelease_id`.
+`prerelease_id` may only contain `[0-9A-Za-z.-]`.
 
 **Breaking in v3:** v2 searched for the branch name with its case kept and no word splitting
-(`HRZ-2573-poc-rspack1`). Repos whose prerelease rule produces that format (for example
-`name.toLowerCase().replace(/[^a-z0-9]/g, '-')`) must pass `prerelease_id` or align their rule
-before moving to v3.
-`prerelease_id` may only contain `[0-9A-Za-z.-]`.
+(`HRZ-2573-poc-rspack1`). Before moving a caller to v3, make sure its semantic-release
+prerelease rule is `_.lowerCase(name).replace(/[^a-zA-Z0-9]/g, '-')`. Changing the rule is
+simpler than passing `prerelease_id`: GitHub expressions cannot lowercase or replace text, so
+a caller cannot build a per-branch id without an extra job. Repos that used a different rule
+when v3 was written:
+
+| Repo | Prerelease rule | Effect of v3 |
+| --- | --- | --- |
+| platform-ai-partner-api, platform-q-mcp | `toLowerCase().replace(/[^a-z0-9]/g, '-')` | Better than v2 for uppercase branches; differs for names like `fix-x1` (`fix-x1` vs `fix-x-1`), which can delete a live `fix-x-1` branch's tags |
+| capital-connect-mobile (via react-native-workflows) | `name.replace(/[^a-zA-Z0-9]/g, '-')` | Same as v2's formula: v3 finds no tags for uppercase branches, and deleting `HRZ-1` can remove a live `hrz-1` branch's tags |
 
 The computation lives in `prerelease-id.js`, which carries lodash's `lowerCase` (MIT) so the
 action needs no `npm install`. It needs `node` on the runner (GitHub-hosted runners have it).

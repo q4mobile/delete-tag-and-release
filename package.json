@@ -12,6 +12,6 @@
   "homepage": "https://github.com/dev-drprasad/delete-tag-and-release",
   "dependencies": {},
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test"
   }
 }
