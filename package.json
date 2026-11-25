@@ -10,5 +10,8 @@
   "author": "REDDY PRASAD",
   "license": "ISC",
   "homepage": "https://github.com/dev-drprasad/delete-tag-and-release",
-  "dependencies": {}
+  "dependencies": {},
+  "scripts": {
+    "test": "node --test"
+  }
 }

@@ -20,6 +20,13 @@ inputs:
   branch_name_override:
     description: branch name to use instead of branch_name
     required: false
+  prerelease_id:
+    description: >-
+      Prerelease id of the branch's tags (the part between vX.Y.Z- and .N). Leave empty to
+      compute it the way semantic-release names it:
+      _.lowerCase(branch).replace(/[^a-zA-Z0-9]/g, '-'). Set it when the repo uses a
+      different prerelease naming rule.
+    required: false
 
 runs:
   using: "composite"
@@ -29,17 +36,33 @@ runs:
       env:
         BRANCH_NAME: ${{ inputs.branch_name }}
         BRANCH_NAME_OVERRIDE: ${{ inputs.branch_name_override }}
+        PRERELEASE_ID: ${{ inputs.prerelease_id }}
       run: |
         # Uses the gh CLI with GH_TOKEN for every call; GITHUB_TOKEN is often read-only.
         git_branch=${BRANCH_NAME_OVERRIDE:-$BRANCH_NAME}
-        tag_format=${git_branch//[^a-zA-Z0-9]/-}
-        echo "branch_name=[${BRANCH_NAME}] branch_name_override=[${BRANCH_NAME_OVERRIDE}] tag_format=[${tag_format}]"
+        git_branch=${git_branch#refs/heads/}
+        if [ -n "$PRERELEASE_ID" ]; then
+          if [[ ! "$PRERELEASE_ID" =~ ^[0-9A-Za-z.-]+$ ]]; then
+            echo "🌶  prerelease_id [${PRERELEASE_ID}] may only contain [0-9A-Za-z.-]"
+            exit 1
+          fi
+          tag_format=$PRERELEASE_ID
+        else
+          # Same id semantic-release gives the branch (lowercased, split at letter/digit and camelCase).
+          tag_format=$(node "${GITHUB_ACTION_PATH}/prerelease-id.js" "$git_branch")
+        fi
+        echo "branch_name=[${BRANCH_NAME}] branch_name_override=[${BRANCH_NAME_OVERRIDE}] prerelease_id=[${PRERELEASE_ID}] tag_format=[${tag_format}]"
+        if [ -z "$tag_format" ]; then
+          echo "found 0 tag(s): branch [${git_branch}] has no prerelease id"
+          exit 0
+        fi
+        tag_pattern=${tag_format//./\\.}
         repo="${GITHUB_REPOSITORY}"
         # Exact match only: vX.Y.Z-<tag_format>.N (a glob would also match other branches' tags).
         all_tags=$(gh api --paginate "repos/${repo}/git/matching-refs/tags/v" --jq '.[].ref | sub("^refs/tags/"; "")')
         tags=()
         while IFS= read -r t; do [ -n "$t" ] && tags+=("$t"); done \
-          < <(grep -E "^v[0-9]+\.[0-9]+\.[0-9]+-${tag_format}\.[0-9]+$" <<<"$all_tags" || true)
+          < <(grep -E "^v[0-9]+\.[0-9]+\.[0-9]+-${tag_pattern}\.[0-9]+$" <<<"$all_tags" || true)
         echo "found ${#tags[@]} tag(s) for ${tag_format}"
         failed=0
         for tag_name in "${tags[@]}"; do
