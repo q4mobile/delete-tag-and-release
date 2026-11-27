@@ -52,6 +52,34 @@ when v3 was written:
 The computation lives in `prerelease-id.js`, which carries lodash's `lowerCase` (MIT) so the
 action needs no `npm install`. It needs `node` on the runner (GitHub-hosted runners have it).
 
+## Cleaning up tags of branches that are already gone
+
+The action only runs when a branch is deleted. Before v3 it missed the tags of many branches
+(see above), and those tags and releases are still in the repos. `scripts/cleanup-orphans.js`
+removes them in a one-time run:
+
+```bash
+# Dry run (default): prints the counts and lists every tag and release it would delete.
+node scripts/cleanup-orphans.js --repo q4mobile/platform-crm-mfe --list orphans.tsv
+
+# After the dry run is reviewed: delete. --limit N deletes the oldest N first.
+node scripts/cleanup-orphans.js --repo q4mobile/platform-crm-mfe --delete
+```
+
+A tag `vX.Y.Z-<id>.N` is orphaned when no live branch has prerelease id `<id>` and the tag
+(and its release, if any) is older than `--older-than` (default `30d`). Live branches are
+matched with the rule above and also ignoring case and punctuation, so a live branch keeps
+tags created under an older naming rule (`HRZ-1` keeps `v1.0.0-HRZ-1.1`).
+
+Deleting removes the release first, then the tag, and waits `--delay-ms` (default 1000)
+between calls to stay under GitHub's secondary rate limits; it also waits out rate-limit
+responses. A release or tag that is already gone counts as done, so an interrupted run can be
+started again. If a release cannot be deleted, its tag is kept.
+
+Needs Node 18+ and a token with `contents: write` (`GH_TOKEN`, `GITHUB_TOKEN`, or `gh auth
+login`). Run it per repo, and only after that repo's callers are on v3 so no new orphans
+appear. Repos whose prerelease rule differs from v3's (see the table above) are not covered.
+
 ## Development
 
 ```bash
