@@ -193,6 +193,18 @@ test('keeps the tag when its release cannot be deleted', async () => {
   assert.ok(gh.state.tags.has('v1.0.0-hrz-1.1'));
 });
 
+test('a tag delete blocked by a ruleset (422) is a failure, not already gone', async () => {
+  const gh = fakeGitHub(fixture());
+  const request = gh.request;
+  gh.request = async (method, url) =>
+    url.includes('/git/refs/tags/')
+      ? { status: 422, ok: false, text: async () => '{"message":"Repository rule violations found"}' }
+      : request(method, url);
+  const s = await deleteOrphans(gh, 'q4mobile/example', [{ tag: 'v1.0.0-hrz-1.1', releaseId: 11 }], { delayMs: 0, log: () => {} });
+  assert.equal(s.failed, 1);
+  assert.equal(s.tagsGone, 0);
+});
+
 test('the client waits out a rate limit and retries', async () => {
   const waits = [];
   const responses = [

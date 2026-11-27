@@ -214,7 +214,9 @@ async function deleteOrphans(gh, repo, orphans, { delayMs = 1000, log = console.
       await sleepImpl(delayMs);
     }
     const res = await gh.request('DELETE', `repos/${repo}/git/refs/tags/${encodeURIComponent(o.tag)}`);
-    if (res.status === 404 || res.status === 422) stats.tagsGone++;
+    // 422 also means a ruleset blocked the delete; only "Reference does not exist" is gone.
+    const missingRef = res.status === 422 && /Reference does not exist/i.test(await res.text().catch(() => ''));
+    if (res.status === 404 || missingRef) stats.tagsGone++;
     else if (res.ok) {
       stats.tagsDeleted++;
       log(`${prefix} 🗑  deleted ${o.tag}${o.releaseId !== null ? ' and its release' : ''}`);
